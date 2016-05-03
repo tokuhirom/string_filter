@@ -36,6 +36,12 @@
 
 The module is a regexp-based string filter, that can merge multiple conversion rules for converting strings. The primary target of the module is to convert inline markups (such as the tweets of Twitter) to HTML.
 
+## Installation
+
+This library was uploaded on maven central.
+
+See [search.maven.org](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22me.geso.string_filter%22) for more details.
+
 ## Supported environment
 
  * Java 8+
