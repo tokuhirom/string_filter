@@ -1,16 +1,15 @@
 package me.geso.string_filter;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class StringFilter {
-    private final Map<String, Function< Matcher, String>> rules;
+    private final List<Rule> rules;
     private final Function<String, String> defaultRule;
     private final Pattern regexp;
 
@@ -18,10 +17,14 @@ public class StringFilter {
         return new StringFilterBuilder();
     }
 
-    public StringFilter(Map<String, Function<Matcher, String>> rules, Function<String, String> defaultRule) {
+    public StringFilter(List<Rule> rules, Function<String, String> defaultRule) {
         this.rules = rules;
         this.defaultRule = defaultRule;
-        this.regexp = Pattern.compile("(" + rules.keySet().stream().collect(Collectors.joining("|")) + ")");
+        this.regexp = Pattern.compile(
+                "(" + rules.stream()
+                        .map(Rule::getRule)
+                        .collect(Collectors.joining("|"))
+                        + ")");
     }
 
     public String filter(String input) {
@@ -55,28 +58,50 @@ public class StringFilter {
     }
 
     private String processMatched(String input) {
-        for (Map.Entry<String, Function<Matcher, String>> rule : rules.entrySet()) {
-            // TODO: precompile
-            Pattern pattern = Pattern.compile(rule.getKey());
-            Matcher matcher = pattern.matcher(input);
+        for (Rule rule : rules) {
+            Matcher matcher = rule.getPattern().matcher(input);
             if (matcher.matches()) {
-                return rule.getValue().apply(matcher);
+                return rule.getFilter().apply(matcher);
             }
         }
         throw new IllegalStateException("Unmatched pattern: '" + input + "'");
     }
 
+    private static class Rule {
+        private final String rule;
+        private final Pattern pattern;
+        private final Function<Matcher, String> filter;
+
+        private Rule(String rule, Function<Matcher, String> filter) {
+            this.rule = rule;
+            this.filter = filter;
+            this.pattern = Pattern.compile(rule);
+        }
+
+        public String getRule() {
+            return rule;
+        }
+
+        public Pattern getPattern() {
+            return pattern;
+        }
+
+        public Function<Matcher, String> getFilter() {
+            return filter;
+        }
+    }
+
     public static class StringFilterBuilder {
-        private final Map<String, Function<Matcher, String>> rules;
+        private final List<Rule> rules;
         private Function<String, String> defaultRule;
 
         StringFilterBuilder() {
-            rules = new LinkedHashMap<>();
+            rules = new ArrayList<>();
             defaultRule = str -> str;
         }
 
-        public StringFilterBuilder addRule(String pattern, Function<Matcher, String> callback) {
-            rules.put(pattern, callback);
+        public StringFilterBuilder addRule(String pattern, Function<Matcher, String> filter) {
+            rules.add(new Rule(pattern, filter));
             return this;
         }
 
