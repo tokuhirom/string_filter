@@ -6,15 +6,20 @@ import org.junit.Test;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by tokuhirom on 5/3/16.
- */
 public class StringFilterTest {
     @Test
     public void filterNop() throws Exception {
         StringFilter filter = StringFilter.builder()
                 .build();
         assertEquals(filter.filter("hoge"), "hoge");
+    }
+
+    @Test
+    public void filterDefaultFilterOnly() throws Exception {
+        StringFilter filter = StringFilter.builder()
+                .defaultRule(StringEscapeUtils::escapeHtml4)
+                .build();
+        assertEquals("hoge&gt;", filter.filter("hoge>"));
     }
 
     @Test

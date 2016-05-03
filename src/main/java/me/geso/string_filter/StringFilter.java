@@ -28,6 +28,10 @@ public class StringFilter {
     }
 
     public String filter(String input) {
+        if (rules.isEmpty()) {
+            return defaultRule.apply(input);
+        }
+
         int index = 0;
 
         ArrayList<String> matchList = new ArrayList<>();
