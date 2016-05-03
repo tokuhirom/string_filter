@@ -19,16 +19,15 @@ public class StringFilterTest {
 
     @Test
     public void filterSimple() throws Exception {
-        // 第一引数の s いらない疑惑
         StringFilter filter = StringFilter.builder()
-                .addRule("http://[A-Za-z0-9_\\-\\~\\.\\%\\?\\#\\@/]+", (s, m) -> {
+                .addRule("http://[A-Za-z0-9_\\-\\~\\.\\%\\?\\#\\@/]+", m -> {
                     String url = m.group(0);
 
                     return "<a href=\""
                             + escapeHtml4(url) +
                             "\">" + escapeHtml4(url) + "</a>";
                 })
-                .addRule("((?:^|\\s)@)([A-Za-z0-9_]+)", (s, m) -> {
+                .addRule("((?:^|\\s)@)([A-Za-z0-9_]+)", m -> {
                     String prefix = m.group(1);
                     String user = m.group(2);
 
@@ -36,11 +35,11 @@ public class StringFilterTest {
                             + escapeHtml4(user) +
                             "\">" + escapeHtml4(user) + "</a>";
                 })
-                .addRule("((?:^|\\s))(#[A-Za-z0-9_]+)", (s,m) -> {
+                .addRule("((?:^|\\s))(#[A-Za-z0-9_]+)", m -> {
                     String prefix = m.group(1);
                     String hashtag = m.group(2);
                     return prefix + "<a href=\"http://twitter.com/search?q="
-                             + escapeHtml4(hashtag)
+                            + escapeHtml4(hashtag)
                             + "\">"
                             + escapeHtml4(hashtag)
                             + "</a>";

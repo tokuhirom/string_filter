@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class StringFilter {
-    private final Map<String, BiFunction<String, Matcher, String>> rules;
+    private final Map<String, Function< Matcher, String>> rules;
     private final Function<String, String> defaultRule;
     private final Pattern regexp;
 
@@ -18,7 +18,7 @@ public class StringFilter {
         return new StringFilterBuilder();
     }
 
-    public StringFilter(Map<String, BiFunction<String, Matcher, String>> rules, Function<String, String> defaultRule) {
+    public StringFilter(Map<String, Function<Matcher, String>> rules, Function<String, String> defaultRule) {
         this.rules = rules;
         this.defaultRule = defaultRule;
         this.regexp = Pattern.compile("(" + rules.keySet().stream().collect(Collectors.joining("|")) + ")");
@@ -55,19 +55,19 @@ public class StringFilter {
     }
 
     private String processMatched(String input) {
-        for (Map.Entry<String, BiFunction<String, Matcher, String>> rule : rules.entrySet()) {
+        for (Map.Entry<String, Function<Matcher, String>> rule : rules.entrySet()) {
             // TODO: precompile
             Pattern pattern = Pattern.compile(rule.getKey());
             Matcher matcher = pattern.matcher(input);
             if (matcher.matches()) {
-                return rule.getValue().apply(input, matcher);
+                return rule.getValue().apply(matcher);
             }
         }
         throw new IllegalStateException("Unmatched pattern: '" + input + "'");
     }
 
     public static class StringFilterBuilder {
-        private final Map<String, BiFunction<String, Matcher, String>> rules;
+        private final Map<String, Function<Matcher, String>> rules;
         private Function<String, String> defaultRule;
 
         StringFilterBuilder() {
@@ -75,7 +75,7 @@ public class StringFilter {
             defaultRule = str -> str;
         }
 
-        public StringFilterBuilder addRule(String pattern, BiFunction<String, Matcher, String> callback) {
+        public StringFilterBuilder addRule(String pattern, Function<Matcher, String> callback) {
             rules.put(pattern, callback);
             return this;
         }
